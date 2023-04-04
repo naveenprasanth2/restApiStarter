@@ -15,6 +15,7 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
@@ -44,10 +45,15 @@ public class JwtSecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity.headers().frameOptions().disable();
+        httpSecurity.csrf().ignoringRequestMatchers("/h2-console/**");
         return httpSecurity.csrf(AbstractHttpConfigurer::disable) // (1)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // (2)
-                .authorizeRequests(auth -> auth.requestMatchers("/authenticate", "/actuator", "/actuator/*").permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll().anyRequest().authenticated()) // (3)
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/authenticate", "/actuator", "/actuator/*", "/h2-console/**")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**")
+                        .permitAll().anyRequest().authenticated()) // (3)
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt) // (4)
                 .exceptionHandling((ex) -> ex.authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint()).accessDeniedHandler(new BearerTokenAccessDeniedHandler())).httpBasic(Customizer.withDefaults()) // (5)
                 .build();
