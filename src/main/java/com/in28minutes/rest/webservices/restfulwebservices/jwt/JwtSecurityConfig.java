@@ -36,6 +36,7 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -43,36 +44,17 @@ public class JwtSecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        return httpSecurity
-                .csrf(AbstractHttpConfigurer::disable) // (1)
-                .sessionManagement(
-                        session ->
-                                session.sessionCreationPolicy(
-                                        SessionCreationPolicy.STATELESS)) // (2)
-                .authorizeRequests(
-                        auth ->
-                                auth.requestMatchers("/authenticate", "/actuator", "/actuator/*")
-                                        .permitAll()
-                                        .requestMatchers(HttpMethod.OPTIONS, "/**")
-                                        .permitAll()
-                                        .anyRequest()
-                                        .authenticated()) // (3)
-                .oauth2ResourceServer(
-                        OAuth2ResourceServerConfigurer::jwt) // (4)
-                .exceptionHandling(
-                        (ex) ->
-                                ex.authenticationEntryPoint(
-                                                new BearerTokenAuthenticationEntryPoint())
-                                        .accessDeniedHandler(
-                                                new BearerTokenAccessDeniedHandler()))
-                .httpBasic(
-                        Customizer.withDefaults()) // (5)
+        return httpSecurity.csrf(AbstractHttpConfigurer::disable) // (1)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // (2)
+                .authorizeRequests(auth -> auth.requestMatchers("/authenticate", "/actuator", "/actuator/*").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll().anyRequest().authenticated()) // (3)
+                .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt) // (4)
+                .exceptionHandling((ex) -> ex.authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint()).accessDeniedHandler(new BearerTokenAccessDeniedHandler())).httpBasic(Customizer.withDefaults()) // (5)
                 .build();
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(
-            UserDetailsService userDetailsService) {
+    public AuthenticationManager authenticationManager(UserDetailsService userDetailsService) {
         var authenticationProvider = new DaoAuthenticationProvider();
         authenticationProvider.setUserDetailsService(userDetailsService);
         return new ProviderManager(authenticationProvider);
@@ -80,11 +62,7 @@ public class JwtSecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        UserDetails user = User.withUsername("in28minutes")
-                .password("{noop}dummy")
-                .authorities("read")
-                .roles("USER")
-                .build();
+        UserDetails user = User.withUsername("in28minutes").password("{noop}dummy").authorities("read").roles("USER").build();
 
         return new InMemoryUserDetailsManager(user);
     }
@@ -92,8 +70,7 @@ public class JwtSecurityConfig {
     @Bean
     public JWKSource<SecurityContext> jwkSource() {
         JWKSet jwkSet = new JWKSet(rsaKey());
-        return (((jwkSelector, securityContext)
-                -> jwkSelector.select(jwkSet)));
+        return (((jwkSelector, securityContext) -> jwkSelector.select(jwkSet)));
     }
 
     @Bean
@@ -103,9 +80,7 @@ public class JwtSecurityConfig {
 
     @Bean
     JwtDecoder jwtDecoder() throws JOSEException {
-        return NimbusJwtDecoder
-                .withPublicKey(rsaKey().toRSAPublicKey())
-                .build();
+        return NimbusJwtDecoder.withPublicKey(rsaKey().toRSAPublicKey()).build();
     }
 
     @Bean
@@ -113,11 +88,7 @@ public class JwtSecurityConfig {
 
         KeyPair keyPair = keyPair();
 
-        return new RSAKey
-                .Builder((RSAPublicKey) keyPair.getPublic())
-                .privateKey((RSAPrivateKey) keyPair.getPrivate())
-                .keyID(UUID.randomUUID().toString())
-                .build();
+        return new RSAKey.Builder((RSAPublicKey) keyPair.getPublic()).privateKey((RSAPrivateKey) keyPair.getPrivate()).keyID(UUID.randomUUID().toString()).build();
     }
 
     @Bean
@@ -127,8 +98,7 @@ public class JwtSecurityConfig {
             keyPairGenerator.initialize(2048);
             return keyPairGenerator.generateKeyPair();
         } catch (Exception e) {
-            throw new IllegalStateException(
-                    "Unable to generate an RSA Key Pair", e);
+            throw new IllegalStateException("Unable to generate an RSA Key Pair", e);
         }
     }
 
