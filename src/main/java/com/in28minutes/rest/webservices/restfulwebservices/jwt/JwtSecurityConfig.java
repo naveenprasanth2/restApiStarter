@@ -15,7 +15,6 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
@@ -38,6 +37,8 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -45,8 +46,8 @@ public class JwtSecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.headers().frameOptions().disable();
         httpSecurity.csrf().ignoringRequestMatchers("/h2-console/**");
+        httpSecurity.headers().frameOptions().disable();
         return httpSecurity.csrf(AbstractHttpConfigurer::disable) // (1)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // (2)
                 .authorizeHttpRequests(auth -> auth
@@ -58,6 +59,28 @@ public class JwtSecurityConfig {
                 .exceptionHandling((ex) -> ex.authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint()).accessDeniedHandler(new BearerTokenAccessDeniedHandler())).httpBasic(Customizer.withDefaults()) // (5)
                 .build();
     }
+
+//    @Bean
+//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+//
+///// 1) All requests should be authenticated
+//
+//        http.authorizeHttpRequests(auth -> {
+//            auth.anyRequest().authenticated();
+//        });
+//
+///// 2) If a request is not authenticated, use
+//
+//        http.httpBasic(withDefaults());
+//
+//        http.headers().frameOptions().disable();
+//
+////// 3) CSRF -> POST, PUT
+//
+//        http.csrf().disable();
+//        return http.build();
+//
+//    }
 
     @Bean
     public AuthenticationManager authenticationManager(UserDetailsService userDetailsService) {

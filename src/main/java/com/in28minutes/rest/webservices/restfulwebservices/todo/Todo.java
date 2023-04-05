@@ -1,5 +1,8 @@
 package com.in28minutes.rest.webservices.restfulwebservices.todo;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -9,9 +12,13 @@ import java.time.LocalDate;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
 public class Todo {
-	private int id;
-	private String userName;
+
+	@Id
+	@GeneratedValue
+	private Integer id;
+	private String username;
 	private String description;
 	private LocalDate targetDate;
 	private boolean done;

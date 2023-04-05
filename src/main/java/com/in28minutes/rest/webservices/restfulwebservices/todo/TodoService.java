@@ -22,14 +22,14 @@ public class TodoService {
 				LocalDate.now().plusYears(12), false ));
 	}
 	
-	public List<Todo> findByUserName(String userName){
+	public List<Todo> findByUsername(String username){
 		Predicate<? super Todo> predicate = 
-				todo -> todo.getUserName().equalsIgnoreCase(userName);
+				todo -> todo.getUsername().equalsIgnoreCase(username);
 		return todos.stream().filter(predicate).toList();
 	}
 	
-	public Todo addTodo(String userName, String description, LocalDate targetDate, boolean done) {
-		Todo todo = new Todo(++todosCount,userName,description,targetDate,done);
+	public Todo addTodo(String username, String description, LocalDate targetDate, boolean done) {
+		Todo todo = new Todo(++todosCount,username,description,targetDate,done);
 		todos.add(todo);
 		return todo;
 	}
